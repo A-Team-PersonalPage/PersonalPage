@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./Introduce.css";
 
 const Introduce = () => {
-  // 더미 데이터
   const place = {
     name: "파리 에펠탑",
     image: `${process.env.PUBLIC_URL}/img/img1.png`,
@@ -21,26 +21,44 @@ const Introduce = () => {
     ],
   };
 
-  const [likes, setLikes] = useState(0);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [newComment, setNewComment] = useState("");  // 새로운 댓글 상태
+  const [reviews, setReviews] = useState(place.reviews);  // 댓글 리스트
+  const [user, setUser] = useState(null);  // 로그인된 사용자 상태
 
-  // 기존 저장된 해시태그 불러오기
+  // 로그인된 사용자 확인 (예시로 localStorage에서 확인)
   useEffect(() => {
-    const savedTags = JSON.parse(localStorage.getItem("savedTags")) || [];
-    setSelectedTags(savedTags);
+    const loggedInUser = JSON.parse(localStorage.getItem("user"));
+    if (loggedInUser) {
+      setUser(loggedInUser);  // 로그인된 사용자 정보 설정
+    }
   }, []);
 
-  // 좋아요 버튼 클릭 시 증가
-  const handleLike = () => setLikes(likes + 1);
+  // 댓글 등록 함수 (로그인 상태에서만 등록)
+  const handleCommentSubmit = () => {
+    if (!user) {
+      alert("로그인 후 댓글을 등록해주세요.");
+      return;
+    }
 
-  // 해시태그 클릭 시 저장 + 스타일 변경
-  const handleTagClick = (tag) => {
-    let savedTags = JSON.parse(localStorage.getItem("savedTags")) || [];
+    if (newComment.trim()) {
+      const commentData = {
+        user_id: user.id,  // 로그인된 사용자의 ID
+        content: newComment,
+      };
 
-    if (!savedTags.includes(tag)) {
-      savedTags.push(tag);
-      localStorage.setItem("savedTags", JSON.stringify(savedTags));
-      setSelectedTags(savedTags);
+      // 백엔드 API로 댓글 등록 요청
+      axios
+        .post("http://localhost:5000/comments", commentData)  // 댓글 등록 API 호출
+        .then(() => {
+          setNewComment("");  // 댓글 등록 후 내용 초기화
+          setReviews((prevReviews) => [
+            ...prevReviews,
+            { user: user.name, comment: newComment },  // 새로운 댓글 UI에 추가
+          ]);
+        })
+        .catch((error) => {
+          console.error("댓글 등록 오류", error);
+        });
     }
   };
 
@@ -52,53 +70,26 @@ const Introduce = () => {
           <img src={place.image} alt={place.name} className="place-image" />
           <p>{place.description}</p>
 
-          <div className="currency-info">
-            <h3>환율 정보</h3>
-            <p>1 USD = {place.currency} {place.local_currency}</p>
-          </div>
-
-          <div className="weather-info">
-            <h3>현재 날씨</h3>
-            <p>온도: {place.weather.temperature}°C</p>
-            <p>날씨: {place.weather.description}</p>
-          </div>
-
-          <div className="map-container">
-            <h3>위치</h3>
-            <p>{place.location}</p>
-            <div className="map-box">📍 지도 들어갈 자리</div>
-          </div>
-
-          <button className="like-button" onClick={handleLike}>
-            ❤️ 좋아요 {likes}
-          </button>
-
-          {/* 해시태그 리스트 */}
-          <div className="hashtags">
-            {place.hashtags.map((tag, index) => (
-              <span
-                key={index}
-                className={`hashtag ${selectedTags.includes(tag) ? "selected" : ""}`}
-                onClick={() => handleTagClick(tag)}
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-
+          {/* 여행지 정보 및 UI */}
           <div className="review-section">
             <h3>여행 후기</h3>
             <ul>
-              {place.reviews.map((review, index) => (
+              {reviews.map((review, index) => (
                 <li key={index}>
-                  <strong>{review.user}:</strong> {review.comment} ⭐ {review.rating}/5
+                  <strong>{review.user}:</strong> {review.comment}
                 </li>
               ))}
             </ul>
 
+            {/* 댓글 입력 폼 */}
             <div className="review-form">
-              <input type="text" placeholder="후기를 입력하세요..." />
-              <button>등록</button>
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="후기를 입력하세요..."
+              />
+              <button onClick={handleCommentSubmit}>댓글 등록</button>
             </div>
           </div>
         </div>

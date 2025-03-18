@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import './MyPage.css';
-import profile from '../../../assets/img/profile.svg';
+import profile from '../../assets/img/profile.svg';
 import { useNavigate } from "react-router-dom";
 
 function MyPageEdit() {

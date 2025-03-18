@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import { useNavigate } from "react-router-dom";
 import './MyPage.css';
-import profile from '../../../assets/img/profile.svg';
-import x from '../../../assets/img/x.svg';
-import plus from '../../../assets/img/plus.svg';
-import like_active from '../../../assets/img/ic_like_active.svg';
+import profile from '../../assets/img/profile.svg';
+import x from '../../assets/img/x.svg';
+import plus from '../../assets/img/plus.svg';
+import like_active from '../../assets/img/ic_like_active.svg';
 
 function MyPage() {
   const navigate = useNavigate();
