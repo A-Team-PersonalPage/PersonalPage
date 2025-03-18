@@ -1,24 +1,52 @@
 import React, { useState } from "react";
-import { findPassword } from "../api/api"; // API 함수 임포트
-import ErrorModal from "../components/ErrorModal"; // 에러 모달 사용
+import axios from "axios"; // ✅ API 직접 호출
+import ErrorModal from "../components/ErrorModal";
 import "./FindPwd.css";
-import { Link } from "react-router-dom"; // ❗ React Router Link 추가 (페이지 이동 가능)
+import { Link } from "react-router-dom";
 
 function FindPwd() {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState(""); // 아이디 입력 추가
-  const [foundPassword, setFoundPassword] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userPhone, setUserPhone] = useState("");
+  const [newPassword, setNewPassword] = useState(""); // ✅ 새 비밀번호 입력 필드 추가
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleFindPassword = async () => {
     setError("");
-    setFoundPassword("");
+    setMessage("");
+    setLoading(true);
 
     try {
-      const response = await findPassword(email, name);
-      setFoundPassword(response.password); // 찾은 비밀번호 설정
+      // ✅ API 직접 요청 보내기
+      const response = await axios.post("http://localhost:3000/resetPwd", {
+        user_name: userName.trim(),
+        user_phone: userPhone.trim(),
+        new_pwd: newPassword.trim(),
+      });
+
+      setMessage(response.data.message); // 성공 메시지 표시
     } catch (error) {
-      setError(error); // 에러 설정 (모달로 표시)
+      console.error("🚨 비밀번호 찾기 오류:", error);
+
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            setError("사용자 정보가 일치하지 않습니다.");
+            break;
+          case 500:
+            setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            break;
+          default:
+            setError(error.response.data?.message || "알 수 없는 오류가 발생했습니다.");
+        }
+      } else if (error.request) {
+        setError("서버 응답이 없습니다. 네트워크 상태를 확인해주세요.");
+      } else {
+        setError("비밀번호 찾기 요청 중 오류가 발생했습니다.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,37 +55,49 @@ function FindPwd() {
       <div className="findpwd-box">
         <h2 className="findpwd-title">비밀번호 찾기</h2>
 
-        {/* 이메일 입력 필드 */}
-        <input
-          type="email"
-          placeholder="가입한 이메일을 입력하세요"
-          className="findpwd-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        {/* 아이디 입력 필드 (추가) */}
+        {/* 이름 입력 */}
         <input
           type="text"
-          placeholder="가입한 아이디를 입력하세요"
+          id="userName"
+          placeholder="가입한 이름을 입력하세요"
           className="findpwd-input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
         />
 
-        <button className="findpwd-button" onClick={handleFindPassword}>
-          비밀번호 찾기
+        {/* 연락처 입력 */}
+        <input
+          type="text"
+          id="userPhone"
+          placeholder="가입한 연락처를 입력하세요"
+          className="findpwd-input"
+          value={userPhone}
+          onChange={(e) => setUserPhone(e.target.value)}
+        />
+
+        {/* 새 비밀번호 입력 (추가) */}
+        <input
+          type="password"
+          id="newPassword"
+          placeholder="새 비밀번호를 입력하세요"
+          className="findpwd-input"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+
+        <button className="findpwd-button" onClick={handleFindPassword} disabled={loading}>
+          {loading ? "변경 중..." : "비밀번호 변경"}
         </button>
 
-        {foundPassword && <p className="findpwd-result">당신의 비밀번호: {foundPassword}</p>}
+        {message && <p className="findpwd-result">{message}</p>}
 
         <div className="signup-links">
-          <Link to="/FindId" className="link-item">아이디 찾기</Link> |  
-          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |  
+          <Link to="/FindId" className="link-item">아이디 찾기</Link> |
+          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |
           <Link to="/Signup" className="link-item">회원가입</Link>
         </div>
 
-        <ErrorModal message={error} onClose={() => setError("")} />
+        {error && <ErrorModal message={error} onClose={() => setError("")} />}
       </div>
     </div>
   );
