@@ -1,96 +1,73 @@
-import React, { useState } from "react";
-import { login } from "../api/api"; // ✅ 로그인 API 요청 함수 추가
-import ErrorModal from "../components/ErrorModal"; // ✅ 에러 모달 사용
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import { Link, useNavigate } from "react-router-dom"; // ✅ 페이지 이동 가능하도록 추가
 
-function Login() {
-  const [formData, setFormData] = useState({
-    user_email: "", // ✅ 기존 emailOrUsername -> user_email로 변경 (백엔드 요청 데이터와 일치)
-    user_pwd: "",   // ✅ 기존 password -> user_pwd로 변경
-  });
-
-  const [loading, setLoading] = useState(false);
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // ✅ 로그인 성공 시 페이지 이동
+  const navigate = useNavigate();
 
-  // 입력 필드 변경 시 상태 업데이트
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // 로그인 요청 함수
-  const handleLogin = async () => {
-    setLoading(true);
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setError("");
 
     try {
-      // ✅ 백엔드 API 요청 형식에 맞게 수정
-      const response = await login({
-        user_email: formData.user_email,
-        user_pwd: formData.user_pwd,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/login",
+        { user_email: email, user_pwd: password },
+        { withCredentials: true }
+      );
 
-      // ✅ 토큰 저장 (쿠키 or 로컬스토리지)
-      localStorage.setItem("token", response.token);
+      console.log("서버 응답:", response.data); // 디버깅 로그
 
-      alert(`${response.user.user_name}님, 환영합니다!`);
-      navigate("/myPage"); // ✅ 로그인 후 메인 페이지로 이동 (필요에 따라 변경 가능)
-    } catch (error) {
-      // ✅ 백엔드에서 응답 메시지가 있으면 그대로 표시
-      setError(error.response?.data?.message || "로그인 실패. 다시 시도해주세요.");
-    } finally {
-      setLoading(false);
+      if (response.data.user_name) {
+        alert(`${response.data.user_name}님 환영합니다.`);
+
+        // ✅ 로그인 성공 후 localhost:3000로 이동
+        window.location.href = "http://localhost:3000";
+      } else {
+        setError("로그인 실패: 사용자 정보를 가져올 수 없습니다.");
+      }
+    } catch (err) {
+      console.error("로그인 오류:", err);
+      setError(err.response?.data?.message || "로그인 실패");
     }
   };
 
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="login-title">로그인하여 여행을 계획하세요</h2>
-
-        <div className="input-container">
-          {/* 이메일 입력 */}
+        <h2 className="login-title">로그인</h2>
+        {error && <p className="error">{error}</p>}
+        <form onSubmit={handleLogin}>
           <input
             type="email"
-            name="user_email" // ✅ name 수정 (백엔드 데이터와 일치)
-            placeholder="이메일"
             className="login-input"
-            value={formData.user_email}
-            onChange={handleChange}
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
-
-          {/* 비밀번호 입력 */}
           <input
             type="password"
-            name="user_pwd" // ✅ name 수정 (백엔드 데이터와 일치)
-            placeholder="비밀번호"
             className="login-input"
-            value={formData.user_pwd}
-            onChange={handleChange}
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
+          <button type="submit" className="login-main-button">
+            로그인
+          </button>
+        </form>
+        <div className="login-links">
+          <a href="/find-id">아이디 찾기</a> | <a href="/find-password">비밀번호 찾기</a> | <a href="/signup">회원가입</a>
         </div>
-
-        {/* 로그인 버튼 */}
-        <button className="login-main-button" onClick={handleLogin} disabled={loading}>
-          {loading ? "로그인 중..." : "로그인"}
-        </button>
-
-        {/* 아이디 찾기 | 비밀번호 찾기 | 회원가입 링크 */}
-        <div className="signup-links">
-          <Link to="/FindId" className="link-item">아이디 찾기</Link> |  
-          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |  
-          <Link to="/Signup" className="link-item">회원가입</Link>
-        </div>
-
-        {/* 에러 모달 */}
-        <ErrorModal message={error} onClose={() => setError("")} />
       </div>
     </div>
   );
-}
+};
 
 export default Login;
