@@ -8,19 +8,19 @@ router.get('/:place_name', async (req, res) => {
   const { place_name } = req.params;
   const decodedPlaceName = decodeURIComponent(place_name); // 한글 디코딩
 
-  console.log(`🔍 요청된 도시 이름: ${decodedPlaceName}`);
+  console.log(`요청된 도시 이름: ${decodedPlaceName}`);
 
   // DB에서 도시명 가져오기
   db.query('SELECT * FROM places WHERE place_name = ?', [decodedPlaceName], async (err, result) => {
     if (err) {
-      console.error("❌ DB 조회 오류:", err);
+      console.error("DB 조회 오류:", err);
       return res.status(500).send({ message: '서버 오류 (DB 조회 실패)' });
     }
 
-    console.log(`🔍 '${decodedPlaceName}'에 대한 DB 조회 결과:`, result);
+    console.log(`'${decodedPlaceName}'에 대한 DB 조회 결과:`, result);
 
     if (result.length === 0) { 
-      console.warn(`⚠️ '${decodedPlaceName}'에 대한 정보 없음! Geonames API에서 가져옵니다.`);
+      console.warn(`'${decodedPlaceName}'에 대한 정보 없음! Geonames API에서 가져옵니다.`);
 
       try {
         // Geonames API에서 도시 정보 가져오기
@@ -35,7 +35,7 @@ router.get('/:place_name', async (req, res) => {
 
         const placeData = geoResponse.data.geonames[0];
         if (!placeData) {
-          console.warn(`⚠️ '${decodedPlaceName}'을(를) Geonames에서 찾을 수 없음.`);
+          console.warn(`'${decodedPlaceName}'을(를) Geonames에서 찾을 수 없음.`);
           return res.status(404).send({ message: '도시를 찾을 수 없습니다.' });
         }
 
@@ -49,7 +49,7 @@ router.get('/:place_name', async (req, res) => {
           [geo_id, decodedPlaceName, place_lat, place_lon],
           (insertErr) => {
             if (insertErr) {
-              console.error("❌ 장소 추가 실패:", insertErr);
+              console.error("장소 추가 실패:", insertErr);
               return res.status(500).send({ message: 'DB에 장소 추가 실패' });
             }
             console.log(`'${decodedPlaceName}' DB에 추가 완료`);
@@ -58,7 +58,7 @@ router.get('/:place_name', async (req, res) => {
 
         result = [{ place_lat, place_lon }];
       } catch (geoError) {
-        console.error("❌ Geonames API 요청 실패:", geoError);
+        console.error("Geonames API 요청 실패:", geoError);
         return res.status(500).send({ message: 'Geonames API 호출 실패' });
       }
     }
@@ -75,7 +75,7 @@ router.get('/:place_name', async (req, res) => {
         }
       });
 
-      console.log("🌤 Open-Meteo 응답 데이터:", weatherResponse.data.current); // 로그 확인
+      console.log("날씨 정보 응답 데이터:", weatherResponse.data.current); // 로그 확인
 
       // 날씨와 위치 정보 반환
       res.json({
@@ -91,7 +91,7 @@ router.get('/:place_name', async (req, res) => {
       });
 
     } catch (weatherError) {
-      console.error("❌ 날씨 정보 가져오기 실패:", weatherError);
+      console.error("날씨 정보 가져오기 실패:", weatherError);
       res.status(500).send({ message: '위치 정보나 날씨 정보를 가져오는 데 실패했습니다.' });
     }
   });

@@ -40,6 +40,8 @@ router.delete("/:place_id", authMiddleware, (req, res) => {
   const { place_id } = req.params;
   const user_id = req.user.id;
 
+  console.log(`좋아요 삭제 요청: user_id=${user_id}, place_id=${place_id}`);
+
   db.query(
     "DELETE FROM places_likes WHERE place_id = ? AND user_id = ?",
     [place_id, user_id],
