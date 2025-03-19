@@ -18,9 +18,9 @@ function App() {
           {" "}
           {/* 모든 페이지에 헤더&푸터 설정 */}
           <Route path="/" element={<Main />} />
-          <Route path="/Signup" element={<Signup />} />
-          <Route path="/FindId" element={<FindId />} />
-          <Route path="/FindPwd" element={<FindPwd />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/findId" element={<FindId />} />
+          <Route path="/findPwd" element={<FindPwd />} />
           <Route path="/place/:place_name" element={<Introduce />} />
           <Route path="/login" element={<Login />} />
           <Route path="/myPage" element={<MyPage />} />

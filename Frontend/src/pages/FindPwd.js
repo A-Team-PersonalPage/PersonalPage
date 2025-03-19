@@ -19,7 +19,7 @@ function FindPwd() {
 
     try {
       // ✅ API 직접 요청 보내기
-      const response = await axios.post("http://localhost:3000/resetPwd", {
+      const response = await axios.post("http://localhost:5000/resetPwd", {
         user_name: userName.trim(),
         user_phone: userPhone.trim(),
         new_pwd: newPassword.trim(),

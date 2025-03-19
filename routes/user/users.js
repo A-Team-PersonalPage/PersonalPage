@@ -28,7 +28,7 @@ const generateToken = (user) => {
 
 // 회원가입
 router.post(
-  "/join",
+  "/signup",
   [
     validationRules.email,
     validationRules.name,

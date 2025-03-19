@@ -15,13 +15,14 @@ const Introduce = () => {
     const fetchPlaceData = async () => {
       try {
         const encodedPlaceName = encodeURIComponent(place_name);
-        const weatherResponse = axios.get(`http://localhost:3000/places_weather/${encodedPlaceName}`);
-        const infoResponse = axios.get(`http://localhost:3000/search/place/${encodedPlaceName}`);
+        const weatherResponse = axios.get(`http://localhost:5000/places_weather/${encodedPlaceName}`);
+        const infoResponse = axios.get(`http://localhost:5000/search/place/${encodedPlaceName}`);
         const [weatherData, infoData] = await Promise.all([weatherResponse, infoResponse]);
 
         if (Array.isArray(infoData.data.data) && infoData.data.data.length > 0) {
           const fetchedPlaceInfo = infoData.data.data[0];
-          setPlaceInfo(fetchedPlaceInfo);
+          setPlaceInfo(fetchedPlaceInfo); // placeInfo 설정
+          console.log("Fetched Place Info: ", fetchedPlaceInfo);  //
           await checkIfLiked(fetchedPlaceInfo.geo_id);
         } else {
           setPlaceInfo(null);
@@ -36,7 +37,7 @@ const Introduce = () => {
 
     const checkIfLiked = async (place_id) => {
       try {
-        const res = await axios.get(`http://localhost:3000/placelikes/check/${place_id}/${user_id}`);
+        const res = await axios.get(`http://localhost:5000/placelikes/check/${place_id}/${user_id}`);
         setLiked(res.data.liked);
       } catch (err) {
         console.error("좋아요 상태 확인 중 오류 발생:", err);
@@ -51,9 +52,9 @@ const Introduce = () => {
 
     try {
       if (!liked) {
-        await axios.post(`http://localhost:3000/placelikes/${place_id}`, { user_id });
+        await axios.post(`http://localhost:5000/placelikes/${place_id}`, { user_id });
       } else {
-        await axios.delete(`http://localhost:3000/placelikes/${place_id}`, { data: { user_id } });
+        await axios.delete(`http://localhost:5000/placelikes/${place_id}`, { data: { user_id } });
       }
       setLiked(!liked);
     } catch (err) {
@@ -74,9 +75,10 @@ const Introduce = () => {
             {liked ? "❤️ 좋아요 취소" : "🤍 좋아요"}
           </button>
 
+          {/* 장소 소개 표시 */}
           <div className="place-info">
             <h3>📍 여행지 소개</h3>
-            <p>{placeInfo.place_info}</p>
+            <p>{placeInfo.place_info}</p> {/* 디비에서 가져온 place_info 값 표시 */}
           </div>
 
           <div className="weather-info">

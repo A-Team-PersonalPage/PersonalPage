@@ -15,7 +15,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/login",
+        "http://localhost:5000/login",
         { user_email: email, user_pwd: password },
         { withCredentials: true }
       );
@@ -26,7 +26,7 @@ const Login = () => {
         alert(`${response.data.user_name}님 환영합니다.`);
 
         // ✅ 로그인 성공 후 localhost:3000로 이동
-        window.location.href = "http://localhost:3000";
+        window.location.href = "http://localhost:5000";
       } else {
         setError("로그인 실패: 사용자 정보를 가져올 수 없습니다.");
       }
