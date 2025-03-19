@@ -21,7 +21,7 @@ function App() {
           <Route path="/Signup" element={<Signup />} />
           <Route path="/FindId" element={<FindId />} />
           <Route path="/FindPwd" element={<FindPwd />} />
-          <Route path="/Introduce" element={<Introduce />} />
+          <Route path="/place/:place_name" element={<Introduce />} />
           <Route path="/login" element={<Login />} />
           <Route path="/myPage" element={<MyPage />} />
           <Route path="/myPage/edit" element={<MyPageEdit />} />

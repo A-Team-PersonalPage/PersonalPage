@@ -32,21 +32,38 @@
 }
 
 .findpwd-button {
-    width: 96%;
-    padding: 12px; /* ✅ 버튼 크기 통일 */
+    width: 22%;
+    height:38px;
+    padding: 12px; 
     background-color: #5A81FA;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 20px; /* ✅ 버튼 위 간격 조정 */
-    font-size: 16px;
+    margin-top: 95px; /* ✅ 버튼 위 간격 조정 */
+    margin-left:-335px;
+    font-size: 14px;
     transition: background 0.2s ease;
 }
 
 .findpwd-button:hover {
     background-color: #4c64f0;
 }
+
+.FindPwd-links {
+    margin-top: 85px;
+    font-size: 14px;
+    gap: 30px;
+  }
+  
+.FindPwd-links a {
+    color: #0077b6;
+    text-decoration: none;
+  }
+  
+.FindPwd-links a:hover {
+    text-decoration: underline;
+  }
 
 .findpwd-result {
     margin-top: 15px;

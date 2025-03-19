@@ -1,96 +1,90 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import "./Introduce.css";
 
 const Introduce = () => {
-  const place = {
-    name: "파리 에펠탑",
-    image: `${process.env.PUBLIC_URL}/img/img1.png`,
-    description: "파리는 로맨틱한 도시로 유명하며 에펠탑이 대표적인 명소입니다.",
-    location: "프랑스, 파리",
-    currency: "1,350",
-    local_currency: "EUR",
-    weather: {
-      temperature: "15",
-      description: "맑음 ☀️",
-    },
-    hashtags: ["파리", "에펠탑", "여행", "유럽"],
-    reviews: [
-      { user: "김철수", comment: "정말 멋진 곳이었어요!", rating: 5 },
-      { user: "이영희", comment: "야경이 특히 아름다웠습니다.", rating: 4.5 },
-    ],
-  };
+  const { place_name } = useParams();
+  const [place, setPlace] = useState(null);
+  const [placeInfo, setPlaceInfo] = useState(null);
+  const [liked, setLiked] = useState(false);
+  const [error, setError] = useState("");
+  const user_id = 1; // 임시 사용자 id
 
-  const [newComment, setNewComment] = useState("");  // 새로운 댓글 상태
-  const [reviews, setReviews] = useState(place.reviews);  // 댓글 리스트
-  const [user, setUser] = useState(null);  // 로그인된 사용자 상태
-
-  // 로그인된 사용자 확인 (예시로 localStorage에서 확인)
   useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem("user"));
-    if (loggedInUser) {
-      setUser(loggedInUser);  // 로그인된 사용자 정보 설정
-    }
-  }, []);
+    const fetchPlaceData = async () => {
+      try {
+        const encodedPlaceName = encodeURIComponent(place_name);
+        const weatherResponse = axios.get(`http://localhost:3000/places_weather/${encodedPlaceName}`);
+        const infoResponse = axios.get(`http://localhost:3000/search/place/${encodedPlaceName}`);
+        const [weatherData, infoData] = await Promise.all([weatherResponse, infoResponse]);
 
-  // 댓글 등록 함수 (로그인 상태에서만 등록)
-  const handleCommentSubmit = () => {
-    if (!user) {
-      alert("로그인 후 댓글을 등록해주세요.");
-      return;
-    }
+        if (Array.isArray(infoData.data.data) && infoData.data.data.length > 0) {
+          const fetchedPlaceInfo = infoData.data.data[0];
+          setPlaceInfo(fetchedPlaceInfo);
+          await checkIfLiked(fetchedPlaceInfo.geo_id);
+        } else {
+          setPlaceInfo(null);
+        }
 
-    if (newComment.trim()) {
-      const commentData = {
-        user_id: user.id,  // 로그인된 사용자의 ID
-        content: newComment,
-      };
+        setPlace(weatherData.data);
+      } catch (err) {
+        console.error("데이터 가져오기 실패:", err);
+        setError("도시 정보를 불러오는 중 오류가 발생했습니다.");
+      }
+    };
 
-      // 백엔드 API로 댓글 등록 요청
-      axios
-        .post("http://localhost:5000/comments", commentData)  // 댓글 등록 API 호출
-        .then(() => {
-          setNewComment("");  // 댓글 등록 후 내용 초기화
-          setReviews((prevReviews) => [
-            ...prevReviews,
-            { user: user.name, comment: newComment },  // 새로운 댓글 UI에 추가
-          ]);
-        })
-        .catch((error) => {
-          console.error("댓글 등록 오류", error);
-        });
+    const checkIfLiked = async (place_id) => {
+      try {
+        const res = await axios.get(`http://localhost:3000/placelikes/check/${place_id}/${user_id}`);
+        setLiked(res.data.liked);
+      } catch (err) {
+        console.error("좋아요 상태 확인 중 오류 발생:", err);
+      }
+    };
+
+    fetchPlaceData();
+  }, [place_name]);
+
+  const handleLikeToggle = async () => {
+    const place_id = placeInfo.geo_id;
+
+    try {
+      if (!liked) {
+        await axios.post(`http://localhost:3000/placelikes/${place_id}`, { user_id });
+      } else {
+        await axios.delete(`http://localhost:3000/placelikes/${place_id}`, { data: { user_id } });
+      }
+      setLiked(!liked);
+    } catch (err) {
+      console.error("좋아요 처리 중 오류 발생:", err);
     }
   };
+
+  if (error) return <p className="error">{error}</p>;
+  if (!place || !placeInfo) return <p className="loading">로딩 중...</p>;
 
   return (
     <div className="page-container">
       <div className="main-content">
         <div className="introduce-container">
-          <h1>{place.name}</h1>
-          <img src={place.image} alt={place.name} className="place-image" />
-          <p>{place.description}</p>
+          <h1>{placeInfo.place_name}</h1>
 
-          {/* 여행지 정보 및 UI */}
-          <div className="review-section">
-            <h3>여행 후기</h3>
-            <ul>
-              {reviews.map((review, index) => (
-                <li key={index}>
-                  <strong>{review.user}:</strong> {review.comment}
-                </li>
-              ))}
-            </ul>
+          <button className={`like-button ${liked ? "liked" : ""}`} onClick={handleLikeToggle}>
+            {liked ? "❤️ 좋아요 취소" : "🤍 좋아요"}
+          </button>
 
-            {/* 댓글 입력 폼 */}
-            <div className="review-form">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="후기를 입력하세요..."
-              />
-              <button onClick={handleCommentSubmit}>댓글 등록</button>
-            </div>
+          <div className="place-info">
+            <h3>📍 여행지 소개</h3>
+            <p>{placeInfo.place_info}</p>
+          </div>
+
+          <div className="weather-info">
+            <h3>현재 날씨</h3>
+            <p>🌡 온도: {place.weather.temperature}°C</p>
+            <p>💨 바람 속도: {place.weather.windspeed} m/s</p>
+            <p>☁️ 구름량: {place.weather.cloudcover} %</p>
+            <p>💧 습도: {place.weather.humidity} %</p>
           </div>
         </div>
       </div>

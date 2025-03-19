@@ -14,15 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
-
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 
 const searchRouter = require("./routes/search");
 

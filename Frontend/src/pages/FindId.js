@@ -88,18 +88,10 @@ function FindId() {
 
         {foundId && <p className="findid-result">당신의 아이디: {foundId}</p>}
 
-        <div className="signup-links">
-          <Link to="/FindId" className="link-item">
-            아이디 찾기
-          </Link>{" "}
-          |
-          <Link to="/FindPwd" className="link-item">
-            비밀번호 찾기
-          </Link>{" "}
-          |
-          <Link to="/Signup" className="link-item">
-            회원가입
-          </Link>
+        <div className="FindId-links">
+          <Link to="/FindId" className="link-item">아이디 찾기</Link> |  
+          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |  
+          <Link to="/Signup" className="link-item">회원가입</Link>
         </div>
 
         {error && <ErrorModal message={error} onClose={() => setError("")} />}

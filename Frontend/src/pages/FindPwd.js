@@ -91,9 +91,9 @@ function FindPwd() {
 
         {message && <p className="findpwd-result">{message}</p>}
 
-        <div className="signup-links">
-          <Link to="/FindId" className="link-item">아이디 찾기</Link> |
-          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |
+        <div className="FindPwd-links">
+          <Link to="/FindId" className="link-item">아이디 찾기</Link> |  
+          <Link to="/FindPwd" className="link-item">비밀번호 찾기</Link> |  
           <Link to="/Signup" className="link-item">회원가입</Link>
         </div>
 

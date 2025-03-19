@@ -25,13 +25,13 @@
   width: 90%;
   height:8%;
   padding: 10px;
-  margin-top: 50px;
+  margin-top: 35px;
   border: 1px solid #ddd;
   border-radius: 5px;
 }
 
 .findid-button {
-  width: 96%;
+  width: 22%;
   padding: 10px;
   background-color: #5A81FA;
   color: white;
@@ -39,10 +39,26 @@
   border-radius: 5px;
   cursor: pointer;
   margin-top:60px;
+  margin-left:-335px;
 }
 
 .findid-button:hover {
   background-color: #4c64f0;
+}
+
+.FindId-links {
+  margin-top: 110px;
+  font-size: 14px;
+  gap: 30px;
+}
+
+.FindId-links a {
+  color: #0077b6;
+  text-decoration: none;
+}
+
+.FindId-links a:hover {
+  text-decoration: underline;
 }
 
 .findid-result {

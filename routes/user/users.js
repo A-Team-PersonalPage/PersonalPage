@@ -80,70 +80,54 @@ router.post(
   [validationRules.email, validationRules.password, validate],
   (req, res) => {
     const { user_email, user_pwd } = req.body;
-    const token = req.cookies.token;
 
-    // 토큰이 있으면 검증 후 자동 로그인 처리
-    if (token) {
-      jwt.verify(token, process.env.PRIVATE_KEY, (err, decoded) => {
-        if (err) {
-          console.error("토큰 검증 오류:", err);
-          res.clearCookie("token"); // 만료된 토큰 삭제
-          return res
-            .status(StatusCodes.UNAUTHORIZED)
-            .json({ message: "세션이 만료되었습니다. 다시 로그인해주세요." });
-        }
-        return res.status(StatusCodes.OK).json({
-          message: `${decoded.name}님 환영합니다. 메인 페이지로 이동합니다.`,
-          token: token,
-        });
-      });
-      return;
-    }
+    // 기존 쿠키 삭제
+    res.clearCookie("token");
 
-    // 토큰이 없으면 비밀번호 확인 후 로그인 처리
+    // 1️⃣ 데이터베이스에서 사용자 정보 가져오기
     let sql = "SELECT * FROM users WHERE user_email = ?";
-    db.query(sql, user_email, (err, results) => {
+    db.query(sql, [user_email], (err, results) => {
       if (err) {
-        console.error(err);
-        return res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json({ message: "서버 오류", error: err });
+        console.error("DB 조회 오류:", err);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "서버 오류", error: err });
       }
 
+      // 2️⃣ 존재하지 않는 이메일일 경우
       if (results.length === 0) {
-        return res
-          .status(StatusCodes.UNAUTHORIZED)
-          .json({ message: "존재하지 않는 이메일입니다." });
+        return res.status(StatusCodes.UNAUTHORIZED).json({ message: "존재하지 않는 이메일입니다." });
       }
 
-      const loginUser = results[0];
+      const loginUser = results[0]; // 로그인한 사용자 정보
 
+      // 3️⃣ 비밀번호 비교
       bcrypt.compare(user_pwd, loginUser.user_pwd, (err, isMatch) => {
         if (err) {
           console.error("비밀번호 검증 오류:", err);
-          return res
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .json({ message: "서버 오류", error: err });
+          return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "서버 오류", error: err });
         }
 
+        // 4️⃣ 비밀번호가 틀릴 경우 즉시 반환
         if (!isMatch) {
-          return res
-            .status(StatusCodes.UNAUTHORIZED)
-            .json({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
+          return res.status(StatusCodes.UNAUTHORIZED).json({ message: "아이디 또는 비밀번호가 일치하지 않습니다." });
         }
 
-        // 로그인 성공 시 토큰 발행
+        // 5️⃣ 로그인 성공 → 새 토큰 생성 후 쿠키 설정
         const newToken = generateToken(loginUser);
         res.cookie("token", newToken, { httpOnly: true });
 
-        res.status(StatusCodes.OK).json({
-          message: `${loginUser.user_name}님 환영합니다. 메인 페이지로 이동합니다.`,
+        console.log("로그인한 사용자 정보:", loginUser); // 🔥 디버깅 로그 추가
+
+        return res.status(StatusCodes.OK).json({
+          message: `${loginUser.user_name}님 환영합니다.`,
+          user_name: loginUser.user_name, // ✅ 사용자 이름 반환 추가
           token: newToken,
         });
       });
     });
   }
 );
+
+
 
 // 회원 개별 조회
 router.get("/mypage", authMiddleware, (req, res) => {
