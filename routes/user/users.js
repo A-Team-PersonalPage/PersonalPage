@@ -20,9 +20,10 @@ const generateToken = (user) => {
       id: user.id,
       email: user.user_email,
       name: user.user_name,
+      id: user.id
     },
     process.env.PRIVATE_KEY,
-    { expiresIn: "30m" } // 30분 만료
+    { expiresIn: "24h" } // 24시간 만료
   );
 };
 

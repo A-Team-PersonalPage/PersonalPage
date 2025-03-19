@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext"; // 로그인 상태 전역 관리
 import Layout from "./components/Layout";
 import Main from "./pages/Main/Main"; // 메인 페이지 추가
 import Login from "./pages/Login"; // 로그인 페이지 추가

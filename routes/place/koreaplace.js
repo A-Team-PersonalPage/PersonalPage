@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../../db');
 
 router.get('/korea', (req, res) => {
-    let sql = `SELECT place_name FROM places WHERE korea = 1 ORDER BY RAND() LIMIT 3;`
+    let sql = `SELECT place_name FROM places WHERE korea = 1;`
 
     db.execute(sql,(err, rows) => {
         console.log(rows)
@@ -22,7 +22,7 @@ router.get('/korea', (req, res) => {
 });
 
 router.get('/foreign_country', (req, res) => {
-    let sql = `SELECT place_name FROM places WHERE korea = 0 ORDER BY RAND() LIMIT 3;`
+    let sql = `SELECT place_name FROM places WHERE korea = 0;`
 
     db.execute(sql,(err, rows) => {
         console.log(rows)

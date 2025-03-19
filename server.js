@@ -14,7 +14,15 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+    cors({
+        origin: "http://localhost:3001",
+        credentials: true, // 쿠키, 인증 정보 포함 요청 허용
+        methods: "GET,POST,PUT,DELETE,OPTIONS",
+        allowedHeaders: "Content-Type,Authorization",
+    })
+);
+  
 
 const searchRouter = require("./routes/search");
 
