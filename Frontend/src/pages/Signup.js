@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import ErrorModal from "../components/ErrorModal";
 import "./Signup.css";
-<<<<<<< HEAD
-import { Link, useNavigate } from "react-router-dom"; // useNavigate import 추가
-=======
 import { Link, useNavigate } from "react-router-dom";  // ✅ useNavigate 추가
->>>>>>> c03062c6bd90e474fb6599f88728465d104d6ff0
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -14,29 +10,12 @@ function Signup() {
     user_name: "",
     user_pwd: "",
     user_phone: "",
-<<<<<<< HEAD
-  }); 
-=======
   });
->>>>>>> c03062c6bd90e474fb6599f88728465d104d6ff0
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();  // ✅ useNavigate 사용
 
-<<<<<<< HEAD
-  // signup 함수 정의
-  const signup = async (formData) => {
-    try {
-      const response = await axios.post("http://localhost:5000/signup", formData);  // 실제 API 엔드포인트로 수정
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-=======
->>>>>>> c03062c6bd90e474fb6599f88728465d104d6ff0
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -50,11 +29,6 @@ function Signup() {
     setError("");
 
     try {
-<<<<<<< HEAD
-      const response = await signup(formData);
-      alert(response.message || "회원가입 성공!");
-      setFormData({ user_email: "", user_name: "", user_pwd: "", user_phone: "" }); // 입력 필드 초기화
-=======
       const response = await axios.post(
         "http://localhost:3000/join",
         {
@@ -73,7 +47,6 @@ function Signup() {
 
       // ✅ 회원가입 성공 후 로그인 페이지로 이동
       navigate("/login");
->>>>>>> c03062c6bd90e474fb6599f88728465d104d6ff0
     } catch (error) {
       console.log(error);
       if (error.response) {
