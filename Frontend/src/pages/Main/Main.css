@@ -140,3 +140,7 @@ p {
     background-color: #CEDEFF;
     cursor: pointer;
 }
+
+.no_data_txt {
+    color: #5A81FA;
+}

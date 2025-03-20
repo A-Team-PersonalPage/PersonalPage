@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useAsyncError, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import './Main.css';
@@ -20,6 +20,8 @@ function Main() {
   const [popularTags, setPopularTags] = useState([]);
   const [userData, setUserData] = useState([]);
   const [likedPlaces, setLikedPlaces] = useState([]);
+  const [isPopularPlaceEmpty, setIsPopularPlaceEmpty] = useState(false);
+  const [isPopularTagEmpty, setIsPopularTagEmpty] = useState(false);
 
   // 국내 해외 토글
   const toggleLocation = () => {
@@ -42,9 +44,23 @@ function Main() {
     // 인기 장소 조회 API
     let fetchPopularPlaces;
     if(isDomestic){
-      fetchPopularPlaces = axios.get(`http://localhost:3000/popular/place/korea`);
+      fetchPopularPlaces = axios
+      .get(`http://localhost:3000/popular/place/korea`)
+      .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          return Promise.resolve({ data: { data: [] } }); 
+        }
+        return Promise.reject(error);
+      });
     } else {
-      fetchPopularPlaces = axios.get(`http://localhost:3000/popular/place/foreign_country`);
+      fetchPopularPlaces = axios
+      .get(`http://localhost:3000/popular/place/foreign_country`)
+      .catch((error) => {
+        if (error.response && error.response.status === 404) {
+          return Promise.resolve({ data: { data: [] } });
+        }
+        return Promise.reject(error);
+      });
     }
 
 
@@ -63,7 +79,14 @@ function Main() {
       : Promise.resolve({ data: [] });
 
     // 인기 태그 조회 API
-    const fetchPopularTags = axios.get(`http://localhost:3000/popular/tag`);
+    const fetchPopularTags = axios
+    .get(`http://localhost:3000/popular/tag`)
+    .catch((error) => {
+      if (error.response && error.response.status === 404) {
+        return Promise.resolve({ data: { data: [] } });
+      }
+      return Promise.reject(error);
+    });
 
     Promise.all([fetchAllPlaces, fetchPopularPlaces, fetchUserData, fetchLikedPlaces, fetchPopularTags])
       .then(([allPlacesResponse, popularPlacesResponse, userDataResponse, likedPlacesResponse, popularTagsResponse]) => {
@@ -72,6 +95,9 @@ function Main() {
         setUserData(userDataResponse.data);
         setLikedPlaces(likedPlacesResponse.data);
         setPopularTags(popularTagsResponse.data.data);
+
+        setIsPopularPlaceEmpty(popularPlaces.length === 0);
+        setIsPopularTagEmpty(popularTags.length === 0);        
       })
       .catch((error) => {
         console.log('API 요청 오류 : ', error);
@@ -126,7 +152,7 @@ function Main() {
           <div className='popular_container'>
             <h3>인기 장소</h3>
             <div className='img_container'>
-              {popularPlaces.slice(0, 3).map((place) => {
+              {!isPopularPlaceEmpty && popularPlaces.slice(0, 3).map((place) => {
                 const isLiked = likedPlaces.some(favoritePlace => favoritePlace.geo_id === place.geo_id);
                 
                 const backgroundImage = getImageForPlace(place.place_name); // 임시 이미지
@@ -164,6 +190,7 @@ function Main() {
                   </div>
                 )
               })}
+              {isPopularPlaceEmpty && <p className='no_data_txt'>맘에 드는 여행지에 좋아요를 눌러보세요!</p>}
             </div>
           </div>
         </section>
@@ -172,10 +199,15 @@ function Main() {
           <h3>인기 해시태그</h3>
           <p>어떤 테마를 원하시나요?</p>
           <div className='popular_hashtags_container'>
-            <div className='popular_hashtag_default'>#</div>
-            {popularTags.map((tag, index) => (
-              <div key={index} className='popular_hashtag' onClick={() => navigate(`/search?query=${tag.tag_name}`)}>{tag.tag_name}</div>
-            ))} 
+            {!isPopularTagEmpty && 
+            <>
+              <div className='popular_hashtag_default'>#</div>
+              {popularTags.map((tag, index) => (
+                <div key={index} className='popular_hashtag' onClick={() => navigate(`/search?query=${tag.tag_name}`)}>{tag.tag_name}</div>
+              ))} 
+            </>
+            }
+            {isPopularTagEmpty && <p className='no_data_txt'>마이페이지에서 선호하는 태그를 등록해보세요!</p>}
           </div>
         </section>
     </div>
