@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import "./MyPage.css";
 import profile from "../../assets/img/profile.svg";
@@ -10,6 +11,7 @@ import { getImageForPlace } from "../../utils/imageUtils";
 
 function MyPage() {
   const navigate = useNavigate();
+  const { deleteUser } = useAuth();
 
   const [userData, setUserData] = useState([]);
   const [tags, setTags] = useState([]);
@@ -129,9 +131,7 @@ function MyPage() {
   // 계정 탈퇴 API
   const handleDeleteAccount = async () => {
     try {
-      await axios.delete("http://localhost:3000/mypage", {
-        withCredentials: true,
-      });
+      await deleteUser();
       navigate("/");
     } catch (error) {
       console.log("계정 탈퇴 오류 : ", error);

@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     const storedIsLogin = localStorage.getItem('isLogin');
 
+    console.log(isLogin);
+
     if (storedUser && storedIsLogin === 'true') {
       setUser(JSON.parse(storedUser));
       setIsLogin(true);
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('탈퇴 실패 : ', err);
     }
-  }
+  };
 
   return (
     <AuthContext.Provider value={{ isLogin, user, login, logout, deleteUser }}>
