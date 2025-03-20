@@ -62,8 +62,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteUser = async () => {
+    try {
+      await axios.delete("http://localhost:3000/mypage", {
+        withCredentials: true,
+      });
+
+      setIsLogin(false);
+      setUser(null);
+      localStorage.removeItem('isLogin');
+      localStorage.removeItem('user');
+    } catch (err) {
+      console.error('탈퇴 실패 : ', err);
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isLogin, user, login, logout }}>
+    <AuthContext.Provider value={{ isLogin, user, login, logout, deleteUser }}>
       {children}
     </AuthContext.Provider>
   );

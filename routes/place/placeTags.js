@@ -3,19 +3,16 @@ const express = require("express");
 const db = require("../../db");
 const router = express.Router();
 
+
 // 특정 소개글의 태그 조회
-router.get("/:place_id", (req, res) => {
+router.get('/:place_id', (req, res) => {
   const { place_id } = req.params;
-  db.query(
-    "SELECT t.tag_name FROM place_tags pt JOIN tags t ON pt.tag_id = t.id WHERE pt.place_id = ?",
-    [place_id],
-    (err, results) => {
-      if (err) {
-        return res.status(500).send("서버 오류");
-      }
-      res.json(results);
+  db.query('SELECT t.tag_name FROM place_tags pt JOIN tags t ON pt.tag_id = t.id WHERE pt.place_id = ?', [place_id], (err, results) => {
+    if (err) {
+      return res.status(500).send('서버 오류');
     }
-  );
+    res.json(results);
+  });
 });
 
 // 특정 소개글에 태그 추가

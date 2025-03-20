@@ -40,7 +40,13 @@ function Main() {
 
 
     // 인기 장소 조회 API
-    const fetchPopularPlaces = axios.get(`http://localhost:3000/popular/place`);
+    let fetchPopularPlaces;
+    if(isDomestic){
+      fetchPopularPlaces = axios.get(`http://localhost:3000/popular/place/korea`);
+    } else {
+      fetchPopularPlaces = axios.get(`http://localhost:3000/popular/place/foreign_country`);
+    }
+
 
     // 회원 정보 조회 API
     const fetchUserData = isLogin ?
