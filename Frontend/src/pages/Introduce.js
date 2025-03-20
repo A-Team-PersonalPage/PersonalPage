@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import "./Introduce.css";
 
 const Introduce = () => {
+  const navigate = useNavigate();
+
   const { place_name } = useParams();
+  const { isLogin } = useAuth();
   const [place, setPlace] = useState(null);
   const [placeInfo, setPlaceInfo] = useState(null);
   const [likedPlaces, setLikedPlaces] = useState([]); // 좋아요한 목록 저장
@@ -18,17 +22,22 @@ const Introduce = () => {
         const encodedPlaceName = encodeURIComponent(place_name);
         const weatherResponse = axios.get(`http://localhost:3000/places_weather/${encodedPlaceName}`);
         const infoResponse = axios.get(`http://localhost:3000/search/place/${encodedPlaceName}`);
-        const likedPlacesResponse = axios.get(`http://localhost:3000/mypage/favoriteplaces`, { withCredentials: true });
 
-        const [weatherData, infoData, likedData] = await Promise.all([
-          weatherResponse,
-          infoResponse,
-          likedPlacesResponse
-        ]);
+        let likedPlacesResponse = null;
+        if (isLogin) {
+          likedPlacesResponse = axios.get(`http://localhost:3000/mypage/favoriteplaces`, { withCredentials: true });
+        }
+
+        const responses = isLogin
+        ? await Promise.all([weatherResponse, infoResponse, likedPlacesResponse])
+        : await Promise.all([weatherResponse, infoResponse]);
+
+        const [weatherData, infoData, likedData] = isLogin
+          ? responses
+          : [...responses, { data: [] }]; // 로그인 안 한 경우 likedData를 빈 배열로 설정
 
         if (Array.isArray(infoData.data.data) && infoData.data.data.length > 0) {
-          const fetchedPlaceInfo = infoData.data.data[0];
-          setPlaceInfo(fetchedPlaceInfo);
+          setPlaceInfo(infoData.data.data[0]);
         } else {
           setPlaceInfo(null);
         }
@@ -42,7 +51,7 @@ const Introduce = () => {
     };
 
     fetchPlaceData();
-  }, [place_name]);
+  }, [place_name, isLogin]);
 
   // 현재 여행지가 내가 좋아요한 리스트에 있는지 체크
   const isLiked = likedPlaces.some(place => place.geo_id === placeInfo?.geo_id);
@@ -51,10 +60,12 @@ const Introduce = () => {
     const place_id = placeInfo.geo_id;
 
     try {
-      if (!isLiked) {
+      if (!isLiked && isLogin) {
         // 좋아요 등록
         await axios.post(`http://localhost:3000/placelikes/${place_id}`, { user_id }, { withCredentials: true });
         setLikedPlaces((prev) => [...prev, { geo_id: place_id }]);
+      } else if (!isLiked && !isLogin) {
+        navigate('/login');
       } else {
         // 좋아요 취소
         await axios.delete(`http://localhost:3000/placelikes/${place_id}`, { data: { user_id }, withCredentials: true });

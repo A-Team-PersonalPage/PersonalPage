@@ -31,78 +31,57 @@ function Main() {
   const toggle_location = isDomestic ? toggle_domestic : toggle_abroad;
 
   // API 호출
-  useEffect(() => {    
-    // 전체 장소 조회 API
-    let fetchAllPlaces;
-    if(isDomestic){    
-      fetchAllPlaces = axios.get(`http://localhost:3000/mainplace/korea`);
-    } else{
-      fetchAllPlaces = axios.get(`http://localhost:3000/mainplace/foreign_country`);
-    }
-
-
-    // 인기 장소 조회 API
-    let fetchPopularPlaces;
-    if(isDomestic){
-      fetchPopularPlaces = axios
-      .get(`http://localhost:3000/popular/place/korea`)
-      .catch((error) => {
-        if (error.response && error.response.status === 404) {
-          return Promise.resolve({ data: { data: [] } }); 
-        }
-        return Promise.reject(error);
-      });
-    } else {
-      fetchPopularPlaces = axios
-      .get(`http://localhost:3000/popular/place/foreign_country`)
-      .catch((error) => {
-        if (error.response && error.response.status === 404) {
-          return Promise.resolve({ data: { data: [] } });
-        }
-        return Promise.reject(error);
-      });
-    }
-
-
-    // 회원 정보 조회 API
-    const fetchUserData = isLogin ?
-     axios.get(`http://localhost:3000/mypage`, {
-       withCredentials: true
-      })
-      : Promise.resolve({ data: {} });
-
-    // 로그인한 경우 좋아요 여부 확인
-    const fetchLikedPlaces = isLogin ? 
-      axios.get(`http://localhost:3000/mypage/favoriteplaces`, {
-        withCredentials: true
-      })
-      : Promise.resolve({ data: [] });
-
-    // 인기 태그 조회 API
-    const fetchPopularTags = axios
-    .get(`http://localhost:3000/popular/tag`)
-    .catch((error) => {
-      if (error.response && error.response.status === 404) {
-        return Promise.resolve({ data: { data: [] } });
-      }
-      return Promise.reject(error);
-    });
-
-    Promise.all([fetchAllPlaces, fetchPopularPlaces, fetchUserData, fetchLikedPlaces, fetchPopularTags])
-      .then(([allPlacesResponse, popularPlacesResponse, userDataResponse, likedPlacesResponse, popularTagsResponse]) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 전체 장소 조회 API
+        const fetchAllPlaces = isDomestic
+          ? axios.get(`http://localhost:3000/mainplace/korea`)
+          : axios.get(`http://localhost:3000/mainplace/foreign_country`);
+  
+        // 인기 장소 조회 API
+        const fetchPopularPlaces = axios
+          .get(`http://localhost:3000/popular/place/${isDomestic ? "korea" : "foreign_country"}`)
+          .catch((error) => (error.response?.status === 404 ? { data: { data: [] } } : Promise.reject(error)));
+  
+        // 회원 정보 조회 API (로그인 여부에 따라 요청)
+        const fetchUserData = isLogin
+          ? axios.get(`http://localhost:3000/mypage`, { withCredentials: true })
+          : Promise.resolve({ data: {} });
+  
+        // 좋아요한 장소 조회 API (로그인한 경우만 요청)
+        const fetchLikedPlaces = isLogin
+          ? axios.get(`http://localhost:3000/mypage/favoriteplaces`, { withCredentials: true })
+          : Promise.resolve({ data: [] });
+  
+        // 인기 태그 조회 API
+        const fetchPopularTags = axios
+          .get(`http://localhost:3000/popular/tag`)
+          .catch((error) => (error.response?.status === 404 ? { data: { data: [] } } : Promise.reject(error)));
+  
+        // 모든 요청 병렬 실행
+        const [allPlacesResponse, popularPlacesResponse, userDataResponse, likedPlacesResponse, popularTagsResponse] =
+          await Promise.all([fetchAllPlaces, fetchPopularPlaces, fetchUserData, fetchLikedPlaces, fetchPopularTags]);
+  
+        // 상태 업데이트
+        const newPopularPlaces = popularPlacesResponse.data.data;
+        const newPopularTags = popularTagsResponse.data.data;
+  
         setAllPlaces(allPlacesResponse.data.data);
-        setPopularPlaces(popularPlacesResponse.data.data);
+        setPopularPlaces(newPopularPlaces);
         setUserData(userDataResponse.data);
         setLikedPlaces(likedPlacesResponse.data);
-        setPopularTags(popularTagsResponse.data.data);
-
-        setIsPopularPlaceEmpty(popularPlaces.length === 0);
-        setIsPopularTagEmpty(popularTags.length === 0);        
-      })
-      .catch((error) => {
-        console.log('API 요청 오류 : ', error);
-      });
-  }, [isLogin, isDomestic]);
+        setPopularTags(newPopularTags);
+  
+        setIsPopularPlaceEmpty(newPopularPlaces.length === 0);
+        setIsPopularTagEmpty(newPopularTags.length === 0);
+      } catch (error) {
+        console.error("API 요청 오류:", error);
+      }
+    };
+  
+    fetchData();
+  }, [isLogin, isDomestic]);  
 
   // 좋아요 버튼
   const handleLikeToggle = async (geo_id) => {
